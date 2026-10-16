@@ -129,9 +129,17 @@ overload! {
         /// ### Limitations
         ///
         /// The `overload!` macro does not support generics, so the implementation is hardcoded to `int` type.
-        /// Rust does not have default function arguments, so C++ constructors with default arguments
-        /// (e.g., `unordered_multiset(size_type bucket_count, const Hash& hash = Hash())`)
-        /// require separate overloads for each argument combination.
+        /// Rust doesn't have default function arguments like C++ does. In C++, you can call
+        /// `unordered_multiset(size_type, const Hash& = Hash(), const key_equal& = key_equal())`
+        /// with 1, 2, or 3 arguments. In Rust, we'd need a separate overload for each combination.
+        /// For this one constructor, that would mean overloads for:
+        /// - (bucket_count)
+        /// - (bucket_count, hash)
+        /// - (bucket_count, hash, key_equal)
+        /// - (bucket_count, hash, key_equal, allocator)
+        /// This gets out of hand quickly when you have multiple constructors with default arguments.
+        /// Also, the `cpp!` macro can't be used inside the `overload!` macro, so we can't easily
+        /// call constructors that need C++ function objects like `std::hash<int>()`.
         pub fn new() -> StdUnorderedMultiset {
             StdUnorderedMultiset::default()
         }
