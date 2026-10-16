@@ -8,7 +8,7 @@ IMPORTANT: You **must** only open one pull request (PR).
 
 **Do not** use AI to write GitHub descriptions, GitHub comments, code comments, or Zulip chats. Write in your native language, or at your current English level. In your PR description, you must tell us how you used AI. You must review code yourself before you open a PR.
 
-For the best learning experience, write the code yourself, without using AI.
+For the best learning experience, write the code yourself, without using AI. Using LLMs to generate code is heavily restricted, and generating large amounts of code is banned.
 
 Applicants must follow the [Rust Project AI/LLM policy][llm-policy].
 
