@@ -28,14 +28,6 @@ pub struct StdUnorderedMultiset(*mut c_void, PhantomData<T>);
 /// Workaround for missing generic support in the `overload!` macro.
 pub type T = std::ffi::c_int;
 
-/// Tag type to call constructor with default hash function.
-#[derive(Clone, Copy)]
-pub struct DefaultHash;
-
-/// Tag type to call constructor with default key equality function.
-#[derive(Clone, Copy)]
-pub struct DefaultKeyEqual;
-
 #[cfg_attr(not(test), expect(dead_code, reason = "Only used in tests"))]
 #[allow(
     non_upper_case_globals,
@@ -85,24 +77,6 @@ impl StdUnorderedMultiset {
         let set = unsafe {
             cpp!([a as "int", b as "int"] -> *mut c_void as "std::unordered_multiset<int>*" {
                 return new std::unordered_multiset<int>{ a, b };
-            })
-        };
-        StdUnorderedMultiset(set, PhantomData)
-    }
-
-    fn from_hash(_tag: DefaultHash) -> StdUnorderedMultiset {
-        let set = unsafe {
-            cpp!([] -> *mut c_void as "std::unordered_multiset<int>*" {
-                return new std::unordered_multiset<int>(0, std::hash<int>());
-            })
-        };
-        StdUnorderedMultiset(set, PhantomData)
-    }
-
-    fn from_key_equal(_tag: DefaultKeyEqual) -> StdUnorderedMultiset {
-        let set = unsafe {
-            cpp!([] -> *mut c_void as "std::unordered_multiset<int>*" {
-                return new std::unordered_multiset<int>(0, std::hash<int>(), std::equal_to<int>());
             })
         };
         StdUnorderedMultiset(set, PhantomData)
@@ -158,14 +132,7 @@ overload! {
         /// Rust doesn't have default function arguments like C++ does. In C++, you can call
         /// `unordered_multiset(size_type, const Hash& = Hash(), const key_equal& = key_equal())`
         /// with 1, 2, or 3 arguments. In Rust, we'd need a separate overload for each combination.
-        /// For this one constructor, that would mean overloads for:
-        /// - (bucket_count)
-        /// - (bucket_count, hash)
-        /// - (bucket_count, hash, key_equal)
-        /// - (bucket_count, hash, key_equal, allocator)
         /// This gets out of hand quickly when you have multiple constructors with default arguments.
-        /// Also, the `cpp!` macro can't be used inside the `overload!` macro, so we can't easily
-        /// call constructors that need C++ function objects like `std::hash<int>()`.
         pub fn new() -> StdUnorderedMultiset {
             StdUnorderedMultiset::default()
         }
@@ -196,24 +163,6 @@ overload! {
         /// Initializer list overloads require separate functions for each argument count, which is not ergonomic.
         pub fn new(a: T, b: T) -> StdUnorderedMultiset {
             StdUnorderedMultiset::from_initializer_list_2(a, b)
-        }
-
-        /// Construct a set with a default hash function.
-        ///
-        /// This demonstrates calling a C++ constructor with default arguments.
-        /// In C++, this would be `unordered_multiset(0, std::hash<int>())` where
-        /// the remaining arguments use their default values.
-        pub fn new(_tag: DefaultHash) -> StdUnorderedMultiset {
-            StdUnorderedMultiset::from_hash(_tag)
-        }
-
-        /// Construct a set with default hash and key equality functions.
-        ///
-        /// This demonstrates calling a C++ constructor with default arguments.
-        /// In C++, this would be `unordered_multiset(0, std::hash<int>(), std::equal_to<int>())`
-        /// where the remaining arguments use their default values.
-        pub fn new(_tag: DefaultKeyEqual) -> StdUnorderedMultiset {
-            StdUnorderedMultiset::from_key_equal(_tag)
         }
     }
 }
@@ -253,12 +202,6 @@ pub fn test_unordered_multiset() {
     let empty_set = StdUnorderedMultiset::new();
     let copied = StdUnorderedMultiset::new(&empty_set);
     assert!(copied.is_empty());
-
-    let from_hash = StdUnorderedMultiset::new(DefaultHash);
-    assert!(from_hash.is_empty());
-
-    let from_key_equal = StdUnorderedMultiset::new(DefaultKeyEqual);
-    assert!(from_key_equal.is_empty());
 
     let mut insert_set = StdUnorderedMultiset::new();
     insert_set.insert(42);
