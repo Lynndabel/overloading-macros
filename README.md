@@ -38,14 +38,14 @@ macro: they are not Rust language design decisions.
 ## Macro Setup
 
 Install a recent version of the nightly Rust compiler, and use it to build your project.
-Add this `overloading-macros` crate as a dependency.
+Add the `splat-overload` crate as a dependency.
 
 ```sh
 rustup update nightly
 cd your-project-name
 rustup override set nightly
-cargo add overloading-macros || \
-    cargo add --git https://github.com/rustfoundation/overloading-macros overloading-macros
+cargo add splat-overload || \
+    cargo add --git https://github.com/rustfoundation/overloading-macros splat-overload
 ```
 
 Then use the macro to add overloading to your functions or methods.
