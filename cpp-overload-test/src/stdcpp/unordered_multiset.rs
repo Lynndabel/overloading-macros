@@ -5,10 +5,6 @@
 //! ## Limitations
 //!
 //! - The `overload!` macro does not support generics, so the implementation is hardcoded to `int` type.
-//! - Rust doesn't have default function arguments. In C++, you can call
-//!   `unordered_multiset(size_type, const Hash& = Hash(), const key_equal& = key_equal())`
-//!   with 1, 2, or 3 arguments. In Rust, we'd need a separate overload for each combination,
-//!   which becomes unwieldy when you have multiple constructors with default arguments.
 
 //! ## Failing Overloads (for step 2)
 //!
@@ -119,6 +115,26 @@ impl StdUnorderedMultiset {
         }
     }
 
+    fn insert_initializer_list_2(&mut self, a: T, b: T) {
+        let slf: *mut c_void = self.0;
+        unsafe {
+            cpp!([slf as "std::unordered_multiset<int>*", a as "int", b as "int"] {
+                slf->insert({ a, b });
+            })
+        }
+    }
+
+    fn insert_with_hint(&mut self, hint: c_size_t, value: T) {
+        let slf: *mut c_void = self.0;
+        unsafe {
+            cpp!([slf as "std::unordered_multiset<int>*", hint as "size_t", value as "int"] {
+                auto it = slf->begin();
+                std::advance(it, hint);
+                slf->insert(it, value);
+            })
+        }
+    }
+
     fn count(&self, value: T) -> c_size_t {
         let slf = self.0 as *const c_void;
         unsafe {
@@ -151,6 +167,12 @@ overload! {
         }
 
         /// Construct a set with at least `bucket_count` buckets.
+        ///
+        /// ### Limitations
+        ///
+        /// Rust doesn't have default function arguments. In C++, this constructor accepts
+        /// optional hash and key_equal arguments with default values. In Rust, each argument
+        /// combination would require a separate overload, which becomes unwieldy.
         pub fn new(bucket_count: c_size_t) -> StdUnorderedMultiset {
             StdUnorderedMultiset::from_bucket_count(bucket_count)
         }
@@ -195,6 +217,20 @@ overload! {
         pub fn insert(&mut self, items: &[T]) {
             self.insert_range(items)
         }
+
+        /// Insert values from an initializer list.
+        ///
+        /// ### Ergonomics
+        ///
+        /// Initializer list overloads require separate functions for each argument count, which is not ergonomic.
+        pub fn insert(&mut self, a: T, b: T) {
+            self.insert_initializer_list_2(a, b)
+        }
+
+        /// Insert a value with a position hint.
+        pub fn insert(&mut self, hint: c_size_t, value: T) {
+            self.insert_with_hint(hint, value)
+        }
     }
 }
 
@@ -223,4 +259,12 @@ pub fn test_unordered_multiset() {
     let mut insert_set = StdUnorderedMultiset::new();
     insert_set.insert([1, 2, 3].as_slice());
     assert_eq!(insert_set.count(1), 1);
+
+    let mut insert_init = StdUnorderedMultiset::new();
+    insert_init.insert(5, 10);
+    assert_eq!(insert_init.count(5), 1);
+
+    let mut insert_hint = StdUnorderedMultiset::new();
+    insert_hint.insert(0 as c_size_t, 7);
+    assert_eq!(insert_hint.count(7), 1);
 }
