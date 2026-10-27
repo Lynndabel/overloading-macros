@@ -10,3 +10,7 @@ pub mod stdcpp {
     pub mod forward_list;
     pub mod unordered_multiset;
 }
+
+// Checks that `build.rs` rebuilds changed `cpp!` code, see `rerun-check.sh`.
+#[cfg(test)]
+mod rerun_check;
