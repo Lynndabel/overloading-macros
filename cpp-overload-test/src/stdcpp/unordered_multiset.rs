@@ -162,15 +162,24 @@ overload! {
         /// Rust doesn't have default function arguments. In C++, this constructor accepts
         /// optional hash and key_equal arguments with default values. In Rust, each argument
         /// combination would require a separate overload, which becomes unwieldy.
-        ///
-        /// Constructors with custom hash functions cannot be represented because C++ templates
-        /// require specific functor types like `std::hash<int>`, not function pointers or
-        /// `std::function`. Accepting custom Rust functions would require explicit template
-        /// specialization which is complex to implement.
-        ///
-        /// Constructors with custom key equality functions have the same limitation.
         pub fn new(bucket_count: c_size_t) -> StdUnorderedMultiset {
             StdUnorderedMultiset::from_bucket_count(bucket_count)
+        }
+
+        /// Construct a set with at least `bucket_count` buckets and a custom hash function.
+        ///
+        /// FIXME: This overload can be implemented using the same pattern as BinaryPredicateRust
+        /// in forward_list. The C++ function type needs to be declared in a cpp! block.
+        pub fn new(_bucket_count: c_size_t, _hash_fn: extern "C" fn(&T) -> c_size_t) -> StdUnorderedMultiset {
+            todo!()
+        }
+
+        /// Construct a set with at least `bucket_count` buckets and a custom key equality function.
+        ///
+        /// FIXME: This overload can be implemented using the same pattern as BinaryPredicateRust
+        /// in forward_list. The C++ function type needs to be declared in a cpp! block.
+        pub fn new(_bucket_count: c_size_t, _key_equal: extern "C" fn(&T, &T) -> bool) -> StdUnorderedMultiset {
+            todo!()
         }
 
         /// Construct a set by copying from another set.

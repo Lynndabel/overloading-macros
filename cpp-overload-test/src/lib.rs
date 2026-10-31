@@ -10,8 +10,8 @@
 pub mod stdcpp {
     // Add new modules for each type here, in alphabetical order.
     pub mod forward_list;
-    pub mod unordered_multiset;
     pub mod hash;
+    pub mod unordered_multiset;
 }
 
 // Checks that `build.rs` rebuilds changed `cpp!` code, see `rerun-check.sh`.
